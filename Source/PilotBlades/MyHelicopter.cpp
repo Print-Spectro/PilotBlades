@@ -13,6 +13,10 @@
 //components 
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "PhysicsEngine/PhysicsThrusterComponent.h"
+
+//debug
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AMyHelicopter::AMyHelicopter()
@@ -24,12 +28,21 @@ AMyHelicopter::AMyHelicopter()
 
 	RootComponent = Mesh;
 
+
+	Blades = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Blades"));
+	Blades->SetupAttachment(Mesh);
+
+	Thruster = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("Thruster"));
+	Thruster->SetupAttachment(Mesh);
+
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));//Creating spring arm
 	SpringArmComp->SetupAttachment(Mesh);//Setting up attachment to the mesh
 
 
 	ThirdPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdPersonCamera"));
 	ThirdPersonCamera->SetupAttachment(SpringArmComp);
+
+
 
 }
 
@@ -38,7 +51,16 @@ void AMyHelicopter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	FVector ThrustCenterOfMassDiff = Thruster->GetComponentLocation() - Mesh->GetCenterOfMass();
+	FRotator InverseMeshRotation = Mesh->GetComponentRotation().GetInverse();
+
+	FVector CenterOfMassOffset = InverseMeshRotation.RotateVector(ThrustCenterOfMassDiff);
+	//Shifting in xy plane
+	FVector CenterOfMassDesiredOffset = FVector(CenterOfMassOffset.X, CenterOfMassOffset.Y, 0);
+	Mesh->SetCenterOfMass(CenterOfMassDesiredOffset, "None");
+
 }
+
 
 
 
@@ -46,6 +68,10 @@ void AMyHelicopter::BeginPlay()
 void AMyHelicopter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	Mesh->SetSimulatePhysics(true);
+	//aligning centre of mass with thruster 
+
+
 
 }
 
@@ -56,9 +82,21 @@ void AMyHelicopter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	//Get player controller
 	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC == nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("AMyHelicopter::SetupPlayerInputComponent: No PlayerController found"));
+	}
 
 	// Get the local player subsystem
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+
+	if (InputMapping == nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("AMyHelicopter::SetupPlayerInputComponent: No InputMapping selected"));
+		return;
+	}
+	if (InputActions == nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("AMyHelicopter::SetupPlayerInputComponent: No InputConfigData set"));
+		return;
+	}
 
 	//Clear out existing mapping, and add our mapping
 	Subsystem->ClearAllMappings();
@@ -70,7 +108,12 @@ void AMyHelicopter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	//PEI->BindAction(InputActions->InputSteer, ETriggerEvent::Triggered, this, &AMyHelicopter::setThrottle);
 	//PEI->BindAction(InputActions->InputSteer, ETriggerEvent::Completed, this, &AMyHelicopter::setThrottle);
 	PEI->BindAction(InputActions->InputLook, ETriggerEvent::Triggered, this, &AMyHelicopter::Look);
-
+	PEI->BindAction(InputActions->InputTilt, ETriggerEvent::Triggered, this, &AMyHelicopter::Tilt);
+	PEI->BindAction(InputActions->InputTilt, ETriggerEvent::Completed, this, &AMyHelicopter::Tilt);
+	PEI->BindAction(InputActions->InputTurn, ETriggerEvent::Triggered, this, &AMyHelicopter::Rotate);
+	//PEI->BindAction(InputActions->InputTurn, ETriggerEvent::Completed, this, &AMyHelicopter::Rotate);
+	PEI->BindAction(InputActions->InputAccelerate, ETriggerEvent::Triggered, this, &AMyHelicopter::MoveUp);
+	PEI->BindAction(InputActions->InputAccelerate, ETriggerEvent::Completed, this, &AMyHelicopter::MoveUp);
 }
 
 void AMyHelicopter::setThrottle()
@@ -85,4 +128,32 @@ void AMyHelicopter::Look(const FInputActionValue& Value) {
 		AddControllerYawInput(LookValue.X);
 		AddControllerPitchInput(LookValue.Y);
 	}
+}
+
+void AMyHelicopter::MoveUp(const FInputActionValue& Value)
+{
+	float ThrottleVale = Value.Get<float>();
+	float Force = ThrottleVale * ActiveThrust + PassiveThrust;
+	float UpVectorClamped = FMath::Clamp(GetActorUpVector().Z, TiltThrustAssistThreshold, 1);
+	Thruster->ThrustStrength = Force / UpVectorClamped * Mesh->GetMass();
+}
+
+void AMyHelicopter::Tilt(const FInputActionValue& Value)
+{
+	FVector2D TiltInput = Value.Get<FVector2D>();
+	float Angle = TiltInput.Y * TiltAngle + Mesh->GetComponentRotation().Pitch;
+	float ClampedAngle = FMath::Clamp(Angle, -TiltSpeedClamp, TiltSpeedClamp);
+	Mesh->AddTorqueInDegrees(GetActorRightVector() * ClampedAngle * TiltSpeed, "None", true);
+
+	
+	float Angle2 = TiltInput.X * TiltAngle + Mesh->GetComponentRotation().Roll;
+	float ClampedAngle2 = FMath::Clamp(Angle2, -TiltSpeedClamp, TiltSpeedClamp);
+	Mesh->AddTorqueInDegrees(GetActorForwardVector() * ClampedAngle2 * TiltSpeed, "None", true);
+}
+
+void AMyHelicopter::Rotate(const FInputActionValue& Value)
+{
+	float TurnInput = Value.Get<float>();
+	UE_LOG(LogTemp, Warning, TEXT("%f"), TurnInput);
+	Mesh->AddTorqueInDegrees(GetActorUpVector() * TurnInput * TurnRate, "None", true);
 }

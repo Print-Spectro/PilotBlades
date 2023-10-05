@@ -23,10 +23,10 @@ public:
 	UInputAction* InputLook;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UInputAction* InputSteer;
+	UInputAction* InputTilt;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UInputAction* InputFire;
+	UInputAction* InputTurn;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UInputAction* InputBrake;
