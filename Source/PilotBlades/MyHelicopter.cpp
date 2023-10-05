@@ -84,7 +84,7 @@ void AMyHelicopter::Tick(float DeltaTime)
 		MyPlayerController->Hud->setFuel(Fuel);
 	}
 
-	Blades->AddRelativeRotation(FRotator(0,90,0)*DeltaTime);
+	//Blades->AddRelativeRotation(FRotator(0,90,0)*DeltaTime);
 }
 
 // Called to bind functionality to input
