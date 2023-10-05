@@ -2,12 +2,16 @@
 
 #pragma once
 
+//interface
+#include "MyInterface.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "MyHelicopter.generated.h"
 
+
 UCLASS()
-class PILOTBLADES_API AMyHelicopter : public APawn
+class PILOTBLADES_API AMyHelicopter : public APawn, public IMyInterface
 {
 	GENERATED_BODY()
 
@@ -63,6 +67,23 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Helicopter Parameters")
 	float TurnRate = 60;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Helicopter Parameters")
+	float StartFuel = 100;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Helicopter Parameters")
+	float Fuel = StartFuel;
+
+	//Setting fuel usage high or low
+	UPROPERTY()
+	float FuelUse = 0;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Helicopter Parameters")
+	float LatentFuelUse = 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Helicopter Parameters")
+	float ActiveFuelUse = 1;
+
+	
 
 	UFUNCTION()
 	void setThrottle();
@@ -79,11 +100,18 @@ protected:
 	UFUNCTION()
 	void Rotate(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void AddFuel(float amount);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void pickUp(float FuelAmount) override;
+
+
 
 };

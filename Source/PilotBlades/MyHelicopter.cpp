@@ -15,6 +15,7 @@
 #include "Camera/CameraComponent.h"
 #include "PhysicsEngine/PhysicsThrusterComponent.h"
 
+
 //debug
 #include "DrawDebugHelpers.h"
 
@@ -71,8 +72,8 @@ void AMyHelicopter::Tick(float DeltaTime)
 	Mesh->SetSimulatePhysics(true);
 	//aligning centre of mass with thruster 
 
-
-
+	Fuel -= FuelUse*DeltaTime;
+	UE_LOG(LogTemp, Display, TEXT("Fuel %f"), Fuel);
 }
 
 // Called to bind functionality to input
@@ -116,6 +117,11 @@ void AMyHelicopter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PEI->BindAction(InputActions->InputAccelerate, ETriggerEvent::Completed, this, &AMyHelicopter::MoveUp);
 }
 
+void AMyHelicopter::pickUp(float FuelAmount)
+{
+	AddFuel(FuelAmount);
+}
+
 void AMyHelicopter::setThrottle()
 {
 }
@@ -132,10 +138,11 @@ void AMyHelicopter::Look(const FInputActionValue& Value) {
 
 void AMyHelicopter::MoveUp(const FInputActionValue& Value)
 {
-	float ThrottleVale = Value.Get<float>();
-	float Force = ThrottleVale * ActiveThrust + PassiveThrust;
+	float ThrottleValue = Value.Get<float>();
+	float Force = ThrottleValue * ActiveThrust + PassiveThrust;
 	float UpVectorClamped = FMath::Clamp(GetActorUpVector().Z, TiltThrustAssistThreshold, 1);
 	Thruster->ThrustStrength = Force / UpVectorClamped * Mesh->GetMass();
+	FuelUse = ThrottleValue*ActiveFuelUse + LatentFuelUse;
 }
 
 void AMyHelicopter::Tilt(const FInputActionValue& Value)
@@ -154,6 +161,12 @@ void AMyHelicopter::Tilt(const FInputActionValue& Value)
 void AMyHelicopter::Rotate(const FInputActionValue& Value)
 {
 	float TurnInput = Value.Get<float>();
-	UE_LOG(LogTemp, Warning, TEXT("%f"), TurnInput);
+	//UE_LOG(LogTemp, Warning, TEXT("%f"), TurnInput);
 	Mesh->AddTorqueInDegrees(GetActorUpVector() * TurnInput * TurnRate, "None", true);
 }
+
+void AMyHelicopter::AddFuel(float amount)
+{
+	Fuel += amount;
+}
+
