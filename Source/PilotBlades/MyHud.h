@@ -20,7 +20,7 @@ class PILOTBLADES_API UMyHud : public UUserWidget, public IMyInterface
 	
 	virtual void NativeConstruct() override;
 
-	public:
+public:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	UTextBlock* Text_Fuel;
@@ -30,4 +30,6 @@ class PILOTBLADES_API UMyHud : public UUserWidget, public IMyInterface
 
 
 	virtual void setFuel(float amount) override;
+
+
 };

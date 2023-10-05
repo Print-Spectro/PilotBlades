@@ -112,6 +112,8 @@ public:
 
 	virtual void pickUp(float FuelAmount) override;
 
+	virtual void win() override;
 
-
+	UPROPERTY()
+	class AMyPlayerController* MyPlayerController;
 };

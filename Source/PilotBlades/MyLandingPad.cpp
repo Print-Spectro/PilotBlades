@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MyFuel.h"
+#include "MyLandingPad.h"
 
 //CollisionSphere
 #include "Components/SphereComponent.h"
@@ -10,7 +10,7 @@
 #include "MyInterface.h"
 
 // Sets default values
-AMyFuel::AMyFuel()
+AMyLandingPad::AMyLandingPad()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -23,31 +23,29 @@ AMyFuel::AMyFuel()
 
 	CollisionSphere->SetupAttachment(Mesh);
 
-	CollisionSphere->OnComponentBeginOverlap.AddUniqueDynamic(this, &AMyFuel::onOverlap);
+	CollisionSphere->OnComponentBeginOverlap.AddUniqueDynamic(this, &AMyLandingPad::onOverlap);
+
 }
 
 // Called when the game starts or when spawned
-void AMyFuel::BeginPlay()
+void AMyLandingPad::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-void AMyFuel::onOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (IMyInterface* Interface = Cast<IMyInterface>(OtherActor)) {
-		Interface->pickUp(Fuel);
-		Destroy();
-	}
-	UE_LOG(LogTemp, Warning, TEXT("AMyFuel::pickUp: Cast to IMyInterface failed"));
-}
-
 // Called every frame
-void AMyFuel::Tick(float DeltaTime)
+void AMyLandingPad::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
+void AMyLandingPad::onOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (IMyInterface* Interface = Cast<IMyInterface>(OtherActor)) {
+		Interface->win();
 
+	}
+}
 

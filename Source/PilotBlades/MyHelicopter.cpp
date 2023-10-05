@@ -15,6 +15,10 @@
 #include "Camera/CameraComponent.h"
 #include "PhysicsEngine/PhysicsThrusterComponent.h"
 
+//hud and that
+#include "MyPlayerController.h"
+#include "MyHud.h"
+
 
 //debug
 #include "DrawDebugHelpers.h"
@@ -60,6 +64,8 @@ void AMyHelicopter::BeginPlay()
 	FVector CenterOfMassDesiredOffset = FVector(CenterOfMassOffset.X, CenterOfMassOffset.Y, 0);
 	Mesh->SetCenterOfMass(CenterOfMassDesiredOffset, "None");
 
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	MyPlayerController = Cast<AMyPlayerController>(PlayerController);
 }
 
 
@@ -73,7 +79,12 @@ void AMyHelicopter::Tick(float DeltaTime)
 	//aligning centre of mass with thruster 
 
 	Fuel -= FuelUse*DeltaTime;
-	UE_LOG(LogTemp, Display, TEXT("Fuel %f"), Fuel);
+	//UE_LOG(LogTemp, Display, TEXT("Fuel %f"), Fuel);
+	if (MyPlayerController && Fuel > 0) {
+		MyPlayerController->Hud->setFuel(Fuel);
+	}
+
+	Blades->AddRelativeRotation(FRotator(0,90,0)*DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -122,6 +133,8 @@ void AMyHelicopter::pickUp(float FuelAmount)
 	AddFuel(FuelAmount);
 }
 
+
+
 void AMyHelicopter::setThrottle()
 {
 }
@@ -137,19 +150,28 @@ void AMyHelicopter::Look(const FInputActionValue& Value) {
 }
 
 void AMyHelicopter::MoveUp(const FInputActionValue& Value)
-{
+{	
+	
 	float ThrottleValue = Value.Get<float>();
 	float Force = ThrottleValue * ActiveThrust + PassiveThrust;
 	float UpVectorClamped = FMath::Clamp(GetActorUpVector().Z, TiltThrustAssistThreshold, 1);
+	if (Fuel <= 0) {
+		Force = 0;
+	}
 	Thruster->ThrustStrength = Force / UpVectorClamped * Mesh->GetMass();
 	FuelUse = ThrottleValue*ActiveFuelUse + LatentFuelUse;
+	UE_LOG(LogTemp, Warning, TEXT("Thrust %f"), Force / UpVectorClamped * Mesh->GetMass());
 }
 
 void AMyHelicopter::Tilt(const FInputActionValue& Value)
 {
+	if (Fuel <= 0) return;
 	FVector2D TiltInput = Value.Get<FVector2D>();
 	float Angle = TiltInput.Y * TiltAngle + Mesh->GetComponentRotation().Pitch;
 	float ClampedAngle = FMath::Clamp(Angle, -TiltSpeedClamp, TiltSpeedClamp);
+	if (Fuel <= 0) {
+		TiltSpeed = 0;
+	}
 	Mesh->AddTorqueInDegrees(GetActorRightVector() * ClampedAngle * TiltSpeed, "None", true);
 
 	
@@ -159,7 +181,8 @@ void AMyHelicopter::Tilt(const FInputActionValue& Value)
 }
 
 void AMyHelicopter::Rotate(const FInputActionValue& Value)
-{
+{	
+	if (Fuel <= 0) return;
 	float TurnInput = Value.Get<float>();
 	//UE_LOG(LogTemp, Warning, TEXT("%f"), TurnInput);
 	Mesh->AddTorqueInDegrees(GetActorUpVector() * TurnInput * TurnRate, "None", true);
@@ -168,5 +191,10 @@ void AMyHelicopter::Rotate(const FInputActionValue& Value)
 void AMyHelicopter::AddFuel(float amount)
 {
 	Fuel += amount;
+}
+
+void AMyHelicopter::win()
+{
+	
 }
 
