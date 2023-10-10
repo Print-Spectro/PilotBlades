@@ -19,11 +19,16 @@ class PILOTBLADES_API AMyPlayerController : public APlayerController
 
 	public:
 
-	UPROPERTY(EditDefaultsOnly, category = "Menu Widget")
-	TSubclassOf<UUserWidget> MainMenuAsset;
+	UPROPERTY(EditDefaultsOnly, category = "Widget")
+	TSubclassOf<UUserWidget> HudAsset;
+
+	UPROPERTY(EditDefaultsOnly, category = "Widget")
+	TSubclassOf<UUserWidget> StartButtonAsset;
 
 	UPROPERTY()
 	class UMyHud* Hud;
 
+	UPROPERTY()
+	class UMyStartButton* StartButton;
 
 };

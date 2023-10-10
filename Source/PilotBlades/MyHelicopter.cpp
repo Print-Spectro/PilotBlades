@@ -9,16 +9,17 @@
 #include <EnhancedInputSubsystems.h>
 #include "EnhancedInput/Public/EnhancedInputComponent.h"
 
-
 //components 
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "PhysicsEngine/PhysicsThrusterComponent.h"
+#include "Components/AudioComponent.h"
 
 //hud and that
 #include "MyPlayerController.h"
 #include "MyHud.h"
 
+#include "Kismet/GameplayStatics.h"
 
 //debug
 #include "DrawDebugHelpers.h"
@@ -43,12 +44,11 @@ AMyHelicopter::AMyHelicopter()
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));//Creating spring arm
 	SpringArmComp->SetupAttachment(Mesh);//Setting up attachment to the mesh
 
-
 	ThirdPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdPersonCamera"));
 	ThirdPersonCamera->SetupAttachment(SpringArmComp);
 
-
-
+	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("Blades Sound"));
+	AudioComponent->SetupAttachment(Blades);
 }
 
 // Called when the game starts or when spawned
@@ -66,6 +66,14 @@ void AMyHelicopter::BeginPlay()
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	MyPlayerController = Cast<AMyPlayerController>(PlayerController);
+	//Setting initual fuel
+	if (MyPlayerController->Hud) {
+		MyPlayerController->Hud->setFuel(Fuel);
+	}
+	
+	//Pausing sound
+	AudioComponent->SetPaused(1);
+
 }
 
 
@@ -78,13 +86,20 @@ void AMyHelicopter::Tick(float DeltaTime)
 	Mesh->SetSimulatePhysics(true);
 	//aligning centre of mass with thruster 
 
-	Fuel -= FuelUse*DeltaTime;
+	
 	//UE_LOG(LogTemp, Display, TEXT("Fuel %f"), Fuel);
-	if (MyPlayerController && Fuel > 0) {
+	if (MyPlayerController && Fuel >= 0) {
 		MyPlayerController->Hud->setFuel(Fuel);
+		Fuel -= FuelUse * DeltaTime;
+		Blades->AddRelativeRotation(FRotator(0, 360 * BladeRotationRate, 0) * DeltaTime * FuelUse);
 	}
+	else if (MyPlayerController){
+		MyPlayerController->Hud->setFuel(0.f);
+		Thruster->ThrustStrength = 0;
+		AudioComponent->SetPaused(1);
+	}
+	
 
-	//Blades->AddRelativeRotation(FRotator(0,90,0)*DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -123,9 +138,10 @@ void AMyHelicopter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PEI->BindAction(InputActions->InputTilt, ETriggerEvent::Triggered, this, &AMyHelicopter::Tilt);
 	PEI->BindAction(InputActions->InputTilt, ETriggerEvent::Completed, this, &AMyHelicopter::Tilt);
 	PEI->BindAction(InputActions->InputTurn, ETriggerEvent::Triggered, this, &AMyHelicopter::Rotate);
-	//PEI->BindAction(InputActions->InputTurn, ETriggerEvent::Completed, this, &AMyHelicopter::Rotate);
+	
 	PEI->BindAction(InputActions->InputAccelerate, ETriggerEvent::Triggered, this, &AMyHelicopter::MoveUp);
 	PEI->BindAction(InputActions->InputAccelerate, ETriggerEvent::Completed, this, &AMyHelicopter::MoveUp);
+	PEI->BindAction(InputActions->InputRestart, ETriggerEvent::Started, this, &AMyHelicopter::restartLevel);
 }
 
 void AMyHelicopter::pickUp(float FuelAmount)
@@ -135,32 +151,50 @@ void AMyHelicopter::pickUp(float FuelAmount)
 
 
 
+void AMyHelicopter::restartLevel()
+{
+	UGameplayStatics::OpenLevel(this, FName(UGameplayStatics::GetCurrentLevelName(this)));
+}
+
 void AMyHelicopter::setThrottle()
 {
+
 }
 
 void AMyHelicopter::Look(const FInputActionValue& Value) {
 	FVector2D LookValue = Value.Get<FVector2D>();
 	//UE_LOG(LogTemp, Log, TEXT("LOOK"));
+
+
 	if (Controller != nullptr) {
 		//UE_LOG(LogTemp, Log, TEXT("Controller"));
-		AddControllerYawInput(LookValue.X);
+
+		if (bInvertLook) {
+			AddControllerYawInput(-LookValue.X);
+		}
+		else {
+			AddControllerYawInput(LookValue.X);
+		}
+		
 		AddControllerPitchInput(LookValue.Y);
 	}
 }
 
 void AMyHelicopter::MoveUp(const FInputActionValue& Value)
 {	
-	
+	AudioComponent->SetPaused(0);
 	float ThrottleValue = Value.Get<float>();
 	float Force = ThrottleValue * ActiveThrust + PassiveThrust;
 	float UpVectorClamped = FMath::Clamp(GetActorUpVector().Z, TiltThrustAssistThreshold, 1);
 	if (Fuel <= 0) {
 		Force = 0;
+		AudioComponent->SetPaused(1);
 	}
+
 	Thruster->ThrustStrength = Force / UpVectorClamped * Mesh->GetMass();
-	FuelUse = ThrottleValue*ActiveFuelUse + LatentFuelUse;
-	UE_LOG(LogTemp, Warning, TEXT("Thrust %f"), Force / UpVectorClamped * Mesh->GetMass());
+	FuelUse = ThrottleValue*0.5 + LatentFuelUse;
+	//UE_LOG(LogTemp, Warning, TEXT("Thrust %f"), Force / UpVectorClamped * Mesh->GetMass());
+	AudioComponent->SetPitchMultiplier(FuelUse);
 }
 
 void AMyHelicopter::Tilt(const FInputActionValue& Value)

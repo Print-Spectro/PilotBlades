@@ -3,28 +3,47 @@
 
 #include "MyPlayerController.h"
 
-#include "Blueprint/WidgetBlueprintLibrary.h"
+//world stuff
+#include "Kismet/GameplayStatics.h"
 
+
+//Widgets
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "MyHud.h"
+#include "MyStartButton.h"
 
 void AMyPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
 
-	if (MainMenuAsset != nullptr) {
-		Hud = CreateWidget<UMyHud>(GetWorld(), MainMenuAsset);
+	if (HudAsset != nullptr) {
+		Hud = CreateWidget<UMyHud>(GetWorld(), HudAsset);
 
 		Hud->AddToViewport();
 
-		//UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(this);
-		//bShowMouseCursor = true;
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("No Hud Asset selected"));
 
-		//WidgetSwitcherInst = MenuSwitchInst->WidgetSwitcher;
+	}
+
+	if (HudAsset != nullptr) {
+		StartButton = CreateWidget<UMyStartButton>(GetWorld(), StartButtonAsset);
+
+		StartButton->AddToViewport();
 
 	}
 	else {
-		UE_LOG(LogTemp, Warning, TEXT("No Menu Switcher Widget Selected"));
+		UE_LOG(LogTemp, Warning, TEXT("No StartButtonSelected"));
+
+
+
 	}
+
+	//Pausing game on begin play for start screen
+	//UGameplayStatics::SetGamePaused(GetWorld(), 1);
+	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(this);
+	bShowMouseCursor = true;
 }
 

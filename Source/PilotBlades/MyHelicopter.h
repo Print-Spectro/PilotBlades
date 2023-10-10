@@ -45,6 +45,10 @@ protected:
 	class UCameraComponent* ThirdPersonCamera;
 
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	class UAudioComponent* AudioComponent;
+
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Helicopter Parameters")
 	float ActiveThrust = 100;
@@ -73,6 +77,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Helicopter Parameters")
 	float Fuel = StartFuel;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Helicopter Parameters")
+	float BladeRotationRate = 2;
+
 	//Setting fuel usage high or low
 	UPROPERTY()
 	float FuelUse = 0;
@@ -83,7 +90,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Helicopter Parameters")
 	float ActiveFuelUse = 1;
 
-	
+	UFUNCTION()
+	void restartLevel();
 
 	UFUNCTION()
 	void setThrottle();
@@ -116,4 +124,7 @@ public:
 
 	UPROPERTY()
 	class AMyPlayerController* MyPlayerController;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool bInvertLook = 0;
 };

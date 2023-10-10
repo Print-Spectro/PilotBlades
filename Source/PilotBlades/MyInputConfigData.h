@@ -29,11 +29,5 @@ public:
 	UInputAction* InputTurn;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UInputAction* InputBrake;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UInputAction* Rangefind;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UInputAction* SwitchView;
+	UInputAction* InputRestart;
 };

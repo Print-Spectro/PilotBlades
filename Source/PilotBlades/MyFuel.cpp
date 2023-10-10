@@ -9,6 +9,10 @@
 //interface
 #include "MyInterface.h"
 
+#include "Kismet/GameplayStatics.h"
+
+#include "Sound/SoundBase.h"
+
 // Sets default values
 AMyFuel::AMyFuel()
 {
@@ -37,16 +41,20 @@ void AMyFuel::onOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherA
 {
 	if (IMyInterface* Interface = Cast<IMyInterface>(OtherActor)) {
 		Interface->pickUp(Fuel);
+		if (PickupSoundEffect) {
+			UGameplayStatics::PlaySoundAtLocation(this, PickupSoundEffect, GetActorLocation());
+			UE_LOG(LogTemp, Warning, TEXT("AMyFuel::onOverlap: No Pickup sound effect selected"));
+		}
+		
 		Destroy();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("AMyFuel::pickUp: Cast to IMyInterface failed"));
+	UE_LOG(LogTemp, Warning, TEXT("AMyFuel::onOverlap: Cast to IMyInterface failed"));
 }
 
 // Called every frame
 void AMyFuel::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 

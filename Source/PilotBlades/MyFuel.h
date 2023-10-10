@@ -26,6 +26,9 @@ protected:
 	class USphereComponent* CollisionSphere;
 
 	UPROPERTY(EditAnywhere)
+	class USoundBase* PickupSoundEffect;
+
+	UPROPERTY(EditAnywhere)
 	float Fuel = 10;
 
 	UFUNCTION()

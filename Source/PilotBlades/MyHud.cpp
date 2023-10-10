@@ -6,16 +6,27 @@
 //Widget Components
 #include "Components/TextBlock.h"
 
+#include <iostream>
 
+#include <iomanip>
+
+using namespace std;
 
 void UMyHud::NativeConstruct()
 {
-	SetFuel(420);
+	//SetFuel(420);
 }
 
-void UMyHud::SetFuel(const float Value)
+void UMyHud::SetFuel(float Value)
 {
-	Text_Fuel->SetText(FText::FromString(FString::Printf(TEXT("%f"), Value)));
+	if (Text_Fuel) {
+		
+		Text_Fuel->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), Value)));
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("UMyHud::SetFuel: No text to bind"))
+	}
+
 }
 
 void UMyHud::setFuel(float amount)
