@@ -67,8 +67,11 @@ void AMyHelicopter::BeginPlay()
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	MyPlayerController = Cast<AMyPlayerController>(PlayerController);
 	//Setting initual fuel
-	if (MyPlayerController->Hud) {
-		MyPlayerController->Hud->setFuel(Fuel);
+	if (MyPlayerController) {
+		if (MyPlayerController->Hud) {
+			MyPlayerController->Hud->setFuel(Fuel);
+		}
+		
 	}
 	
 	//Pausing sound
