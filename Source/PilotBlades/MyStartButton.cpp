@@ -18,7 +18,6 @@ void UMyStartButton::NativeConstruct()
 	else {
 		UE_LOG(LogTemp, Display, TEXT("UMyStartButton::NativeConstruct: No Start button to bind"))
 	}
-
 }
 
 void UMyStartButton::onStartClicked()

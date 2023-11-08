@@ -19,11 +19,9 @@ class PILOTBLADES_API UMyStartButton : public UUserWidget
 	virtual void NativeConstruct() override;
 
 protected:
-
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UButton* BTN_Start;
 
 	UFUNCTION()
 	void onStartClicked();
-	
 };

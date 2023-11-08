@@ -17,8 +17,6 @@ UCLASS()
 class PILOTBLADES_API UMyHud : public UUserWidget, public IMyInterface
 {
 	GENERATED_BODY()
-	
-	virtual void NativeConstruct() override;
 
 public:
 
@@ -28,8 +26,6 @@ public:
 	UFUNCTION()
 	void SetFuel(const float Value);
 
-
 	virtual void setFuel(float amount) override;
-
 
 };

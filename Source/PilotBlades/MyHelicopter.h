@@ -44,11 +44,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class UCameraComponent* ThirdPersonCamera;
 
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class UAudioComponent* AudioComponent;
-
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Helicopter Parameters")
 	float ActiveThrust = 100;
@@ -94,13 +91,10 @@ protected:
 	void restartLevel();
 
 	UFUNCTION()
-	void setThrottle();
-
-	UFUNCTION()
 	void Look(const FInputActionValue& Value);
 
 	UFUNCTION()
-	void MoveUp(const FInputActionValue& Value);
+	void SetThrottle(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void Tilt(const FInputActionValue& Value);

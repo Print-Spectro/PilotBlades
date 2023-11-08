@@ -13,16 +13,11 @@ class UMyInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class PILOTBLADES_API IMyInterface
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	
 	virtual void pickUp(float FuelAmount) {};
 
 	virtual void setFuel(float FuelAmount) {};

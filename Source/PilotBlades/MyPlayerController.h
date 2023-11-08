@@ -6,15 +6,11 @@
 #include "GameFramework/PlayerController.h"
 #include "MyPlayerController.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class PILOTBLADES_API AMyPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
-
 	virtual void BeginPlay() override;
 
 	public:
@@ -30,5 +26,4 @@ class PILOTBLADES_API AMyPlayerController : public APlayerController
 
 	UPROPERTY()
 	class UMyStartButton* StartButton;
-
 };

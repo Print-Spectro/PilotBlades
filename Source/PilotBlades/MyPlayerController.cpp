@@ -14,35 +14,20 @@
 
 void AMyPlayerController::BeginPlay()
 {
-	Super::BeginPlay();
-
-
 	if (HudAsset != nullptr) {
 		Hud = CreateWidget<UMyHud>(GetWorld(), HudAsset);
-
 		Hud->AddToViewport();
-
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("No Hud Asset selected"));
-
 	}
-
 	if (HudAsset != nullptr) {
 		StartButton = CreateWidget<UMyStartButton>(GetWorld(), StartButtonAsset);
-
 		StartButton->AddToViewport();
-
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("No StartButtonSelected"));
-
-
-
 	}
-
-	//Pausing game on begin play for start screen
-	//UGameplayStatics::SetGamePaused(GetWorld(), 1);
 	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(this);
 	bShowMouseCursor = true;
 }
